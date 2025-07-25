@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gym Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.png" />
+</head>
+<body>
+  <div class="container">
+    <div id="login-section" class="card centered">
+      <h2>Private Gym Tracker</h2>
+      <form id="login-form">
+        <div class="input-group">
+          <label>Username</label>
+          <input type="password" id="login-user" placeholder="Enter username" required autocomplete="off" />
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="login-pass" placeholder="Enter password" required />
+        </div>
+        <button type="submit" class="btn">Login</button>
+      </form>
+    </div>
+
+    <div id="app-section" style="display:none;">
+      <header>
+        <h1>Gym Tracker</h1>
+        <button onclick="logout()" class="btn logout">Logout</button>
+      </header>
+
+      <section class="card">
+        <h2>Add Workout</h2>
+        <form id="workout-form">
+          <div class="input-group">
+            <label>Date</label>
+            <input type="date" id="date" required />
+          </div>
+          <div class="input-group">
+            <label>Split</label>
+            <select id="split">
+              <option>Push</option>
+              <option>Pull</option>
+              <option>Legs</option>
+              <option>Full Body</option>
+              <option>Custom</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Machine / Exercise</label>
+            <input type="text" id="machine" required />
+          </div>
+          <div class="input-group">
+            <label>Sets</label>
+            <input type="number" id="sets" required />
+          </div>
+          <div class="input-group">
+            <label>Weight (kg)</label>
+            <input type="number" id="weight" required />
+          </div>
+          <button type="submit" class="btn">Add Workout</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>View by Date</h2>
+        <div class="input-group-inline">
+          <input type="date" id="view-date" />
+        </div>
+        <div id="day-log" class="day-log"></div>
+      </section>
+
+      <section class="card">
+        <h2>All Workouts</h2>
+        <table id="log-table">
+          <thead>
+            <tr><th>Date</th><th>Split</th><th>Machine</th><th>Sets</th><th>Weight</th></tr>
+          </thead>
+          <tbody id="log-body"></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker Registered'));
+    }
+  </script>
+</body>
+</html>
