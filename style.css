@@ -2,6 +2,7 @@ body {
   font-family: Arial, sans-serif;
   background: #111;
   color: #fff;
+  margin: 0;
   padding: 20px;
   text-align: center;
 }
@@ -12,12 +13,20 @@ input, button {
   border-radius: 6px;
   border: none;
   font-size: 1em;
+  width: 80%;
+  max-width: 300px;
+  box-sizing: border-box;
 }
 
 button {
   cursor: pointer;
   background: #333;
   color: #fff;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background: #444;
 }
 
 button.active {
@@ -30,6 +39,7 @@ button.active {
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
+  margin-bottom: 10px;
 }
 
 #history-list {
@@ -38,4 +48,18 @@ button.active {
   max-width: 400px;
   margin-left: auto;
   margin-right: auto;
+}
+
+#login-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
