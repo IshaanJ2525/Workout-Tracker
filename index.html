@@ -2,111 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gym Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Workout Tracker</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.png" />
+  <link rel="icon" href="icon.png" type="image/png" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
 </head>
-<body>
-  <div class="container">
-    <!-- LOGIN SECTION -->
-    <div id="login-section" class="card centered">
-      <h2>Private Gym Tracker</h2>
-      <form id="login-form">
-        <div class="input-group">
-          <label>Username</label>
-          <input type="password" id="login-user" placeholder="Enter username" required autocomplete="off" />
-        </div>
-        <div class="input-group">
-          <label>Password</label>
-          <input type="password" id="login-pass" placeholder="Enter password" required />
-        </div>
-        <button type="submit" class="btn">Login</button>
-      </form>
-    </div>
+<body class="bg-gray-900 text-white font-sans min-h-screen">
+  <div class="max-w-3xl mx-auto p-6">
+    <h1 class="text-4xl font-bold text-center mb-6">Workout Tracker</h1>
 
-    <!-- APP SECTION -->
-    <div id="app-section" style="display:none;">
-      <header>
-        <h1>🏋️ Gym Tracker</h1>
-        <button onclick="logout()" class="btn logout">Logout</button>
-      </header>
+    <form id="workoutForm" class="bg-gray-800 p-4 rounded-lg shadow-lg">
+      <div class="mb-4">
+        <label class="block mb-2">Date</label>
+        <input type="date" id="date" class="w-full p-2 rounded bg-gray-700 text-white" required />
+      </div>
+      <div class="mb-4">
+        <label class="block mb-2">Workout Description</label>
+        <input type="text" id="description" placeholder="e.g., Chest + Triceps" class="w-full p-2 rounded bg-gray-700 text-white" required />
+      </div>
+      <div class="mb-4">
+        <label class="block mb-2">Duration (mins)</label>
+        <input type="number" id="duration" class="w-full p-2 rounded bg-gray-700 text-white" required />
+      </div>
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">Save Workout</button>
+    </form>
 
-      <!-- ADD WORKOUT FORM -->
-      <section class="card">
-        <h2>Add Workout</h2>
-        <form id="workout-form">
-          <div class="input-group">
-            <label>Date</label>
-            <input type="date" id="date" required />
-          </div>
-          <div class="input-group">
-            <label>Split</label>
-            <select id="split">
-              <option>Push</option>
-              <option>Pull</option>
-              <option>Legs</option>
-              <option>Full Body</option>
-              <option>Custom</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label>Machine / Exercise</label>
-            <input type="text" id="machine" required />
-          </div>
-          <div class="input-group">
-            <label>Sets</label>
-            <input type="number" id="sets" required />
-          </div>
-          <div class="input-group">
-            <label>Reps per Set</label>
-            <input type="number" id="reps" required />
-          </div>
-          <div class="input-group">
-            <label>Weight (kg)</label>
-            <input type="number" id="weight" required />
-          </div>
-          <button type="submit" class="btn">Add Workout</button>
-        </form>
-      </section>
-
-      <!-- VIEW BY DATE -->
-      <section class="card">
-        <h2>View by Date</h2>
-        <div class="input-group-inline">
-          <input type="date" id="view-date" />
-        </div>
-        <div id="day-log" class="day-log"></div>
-      </section>
-
-      <!-- ALL WORKOUTS TABLE -->
-      <section class="card">
-        <h2>All Workouts</h2>
-        <table id="log-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Split</th>
-              <th>Machine</th>
-              <th>Sets</th>
-              <th>Reps</th>
-              <th>Weight</th>
-            </tr>
-          </thead>
-          <tbody id="log-body"></tbody>
-        </table>
-      </section>
+    <div class="mt-8">
+      <h2 class="text-2xl font-semibold mb-4">Workout History</h2>
+      <ul id="historyList" class="space-y-2"></ul>
     </div>
   </div>
 
-  <!-- SCRIPTS -->
-  <script src="script.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('✅ Service Worker Registered'));
-    }
+    const form = document.getElementById('workoutForm');
+    const historyList = document.getElementById('historyList');
+
+    const saveWorkout = (workout) => {
+      const data = JSON.parse(localStorage.getItem('workouts') || '[]');
+      data.push(workout);
+      localStorage.setItem('workouts', JSON.stringify(data));
+    };
+
+    const loadHistory = () => {
+      const data = JSON.parse(localStorage.getItem('workouts') || '[]');
+      historyList.innerHTML = '';
+      data.reverse().forEach((entry) => {
+        const li = document.createElement('li');
+        li.className = 'bg-gray-800 p-3 rounded shadow';
+        li.textContent = `${entry.date}: ${entry.description} - ${entry.duration} mins`;
+        historyList.appendChild(li);
+      });
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const workout = {
+        date: document.getElementById('date').value,
+        description: document.getElementById('description').value,
+        duration: document.getElementById('duration').value,
+      };
+      saveWorkout(workout);
+      form.reset();
+      loadHistory();
+    });
+
+    window.addEventListener('load', loadHistory);
   </script>
 </body>
 </html>
