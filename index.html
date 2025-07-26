@@ -2,47 +2,105 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Workout Tracker</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
-  <script defer src="app.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gym Tracker</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@latest/css/pico.min.css" />
+  <style>
+    body {
+      background-color: #101010;
+      color: #f0f0f0;
+    }
+    main {
+      max-width: 700px;
+      margin: auto;
+      padding: 2rem;
+    }
+    .workout-entry {
+      background: #1a1a1a;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1e1e1e;
+    }
+    th, td {
+      padding: 0.5rem;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+    th {
+      background-color: #282828;
+    }
+  </style>
 </head>
 <body>
-  <div class="login-container" id="loginScreen">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-  </div>
+<main>
+  <h2>Welcome, Ishaan</h2>
 
-  <div class="main-app hidden" id="appScreen">
-    <h2 id="welcomeText"></h2>
-    <button onclick="logout()">Logout</button>
+  <button id="logout">Logout</button>
 
-    <label for="splitSelect">Select Workout Split:</label>
-    <select id="splitSelect" multiple>
-      <option>Chest</option>
-      <option>Back</option>
-      <option>Bicep</option>
-      <option>Tricep</option>
-      <option>Shoulder</option>
-      <option>Legs</option>
-    </select>
+  <h4>Workout Split:</h4>
+  <select id="muscleGroups" multiple>
+    <option>Chest</option><option>Back</option><option>Bicep</option><option>Tricep</option>
+    <option>Shoulder</option><option>Legs</option><option>Abs</option><option>Cardio</option>
+  </select>
 
-    <div id="entryForm">
-      <input placeholder="Machine Name" id="machine" />
-      <input type="number" placeholder="Weight" id="weight" />
-      <input type="number" placeholder="Reps" id="reps" />
-      <button onclick="addSet()">Add Set</button>
-    </div>
+  <input type="text" id="machine" placeholder="Machine Name">
+  <input type="number" id="weight" placeholder="Weight (kg)">
+  <input type="number" id="reps" placeholder="Reps">
+  <button id="addSet">Add Set</button>
 
-    <div id="setsList"></div>
-    <button onclick="saveWorkout()">Save Workout</button>
+  <h4>Today's Workout</h4>
+  <div id="summary"></div>
 
-    <h3>Workout Calendar</h3>
-    <input type="date" id="calendar" onchange="loadWorkout()" />
-    <div id="calendarView"></div>
-  </div>
+  <h4>Workout Calendar</h4>
+  <input type="date" id="workoutDate" value="">
+  <div id="daySummary"></div>
+</main>
+
+<script>
+  let sets = [];
+
+  function renderSummary() {
+    const grouped = {};
+    sets.forEach(({ muscle, machine, weight, reps }) => {
+      const key = `${muscle}|${machine}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push({ weight, reps });
+    });
+
+    let html = '<table><thead><tr><th>Muscle</th><th>Machine</th><th>Sets</th></tr></thead><tbody>';
+    for (const key in grouped) {
+      const [muscle, machine] = key.split('|');
+      const setsList = grouped[key].map((s, i) => `Set ${i + 1}: ${s.weight}kg x ${s.reps} reps`).join('<br>');
+      html += `<tr><td>${muscle}</td><td>${machine}</td><td>${setsList}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('summary').innerHTML = html;
+  }
+
+  document.getElementById('addSet').addEventListener('click', () => {
+    const muscles = Array.from(document.getElementById('muscleGroups').selectedOptions).map(o => o.value);
+    const machine = document.getElementById('machine').value;
+    const weight = parseInt(document.getElementById('weight').value);
+    const reps = parseInt(document.getElementById('reps').value);
+
+    if (!muscles.length || !machine || isNaN(weight) || isNaN(reps)) return alert('Fill all fields');
+
+    muscles.forEach(muscle => {
+      sets.push({ muscle, machine, weight, reps });
+    });
+
+    renderSummary();
+    document.getElementById('machine').value = '';
+    document.getElementById('weight').value = '';
+    document.getElementById('reps').value = '';
+  });
+
+  document.getElementById('workoutDate').valueAsDate = new Date();
+</script>
 </body>
 </html>
