@@ -1,11 +1,19 @@
-const CACHE_NAME = 'gym‑tracker‑v1';
-const FILES = [
-  '/', '/index.html', '/style.css',
-  '/script.js', '/manifest.json', '/icon.png'
+const CACHE_NAME = 'workout-tracker-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/style.css',
+  '/app.js',
+  '/manifest.json',
+  '/assets/icon.png'
 ];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(FILES)));
+
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
 });
-self.addEventListener('fetch', e => {
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+
+self.addEventListener("fetch", e => {
+  e.respondWith(
+    caches.match(e.request).then(response => response || fetch(e.request))
+  );
 });
