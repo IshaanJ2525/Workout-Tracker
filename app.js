@@ -1,83 +1,80 @@
-const allowedUsers = {
-  ishaan: "ishaan",
-  shaunak: "shaunak",
-  aditya:   "aditya"
+const users = {
+  Ishaan: "Ishaan",
+  Aditya: "Aditya",
+  Shaunak: "Shaunak"
 };
 
 let currentUser = null;
+let sets = [];
 
-document.getElementById('login-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const username = document.getElementById('login-user').value.trim();
-  const password = document.getElementById('login-pass').value.trim();
-  if (!allowedUsers[username]) {
-    alert("Unauthorized user.");
-    return;
-  }
-  if (allowedUsers[username] !== password) {
-    alert("Incorrect password.");
-    return;
-  }
-  currentUser = username;
-  document.getElementById('login-section').style.display = 'none';
-  document.getElementById('app-section').style.display = 'block';
-  renderTable();
-});
-
-document.getElementById('workout-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  if (!currentUser) return;
-  const entry = {
-    date: document.getElementById('date').value,
-    split: document.getElementById('split').value,
-    machine: document.getElementById('machine').value.trim(),
-    sets: document.getElementById('sets').value,
-    weight: document.getElementById('weight').value
-  };
-  const key = `workouts_${currentUser}`;
-  const data = JSON.parse(localStorage.getItem(key) || '[]');
-  data.push(entry);
-  localStorage.setItem(key, JSON.stringify(data));
-  renderTable();
-  this.reset();
-});
-
-document.getElementById('view-date').addEventListener('change', function () {
-  const selected = this.value;
-  const data = JSON.parse(localStorage.getItem(`workouts_${currentUser}`) || '[]');
-  const list = data.filter(w => w.date === selected);
-  const div = document.getElementById('day-log');
-  if (!list.length) {
-    div.innerHTML = `<p>No workouts on ${selected}</p>`;
+function login() {
+  const user = document.getElementById('username').value;
+  const pass = document.getElementById('password').value;
+  if (users[user] === pass) {
+    currentUser = user;
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("appScreen").classList.remove("hidden");
+    document.getElementById("welcomeText").innerText = `Welcome, ${user}`;
+    document.getElementById("calendar").valueAsDate = new Date();
+    loadWorkout();
   } else {
-    div.innerHTML = `<ul>${list.map(w =>
-      `<li>${w.machine}: ${w.sets} sets @ ${w.weight}kg (${w.split})</li>`
-    ).join('')}</ul>`;
+    alert("Invalid credentials");
   }
-});
-
-function renderTable() {
-  const data = JSON.parse(localStorage.getItem(`workouts_${currentUser}`) || '[]');
-  const tbody = document.getElementById('log-body');
-  tbody.innerHTML = '';
-  data.forEach(w => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${w.date}</td>
-      <td>${w.split}</td>
-      <td>${w.machine}</td>
-      <td>${w.sets}</td>
-      <td>${w.weight}</td>`;
-    tbody.appendChild(row);
-  });
 }
 
 function logout() {
   currentUser = null;
-  document.getElementById('app-section').style.display = 'none';
-  document.getElementById('login-section').style.display = 'block';
-  document.getElementById('login-form').reset();
-  document.getElementById('view-date').value = '';
-  document.getElementById('day-log').innerHTML = '';
-  document.getElementById('log-body').innerHTML = '';
+  sets = [];
+  document.getElementById("loginScreen").classList.remove("hidden");
+  document.getElementById("appScreen").classList.add("hidden");
+}
+
+function addSet() {
+  const machine = document.getElementById("machine").value;
+  const weight = document.getElementById("weight").value;
+  const reps = document.getElementById("reps").value;
+  if (machine && weight && reps) {
+    sets.push({ machine, weight, reps });
+    updateSetsList();
+    document.getElementById("machine").value = "";
+    document.getElementById("weight").value = "";
+    document.getElementById("reps").value = "";
+  }
+}
+
+function updateSetsList() {
+  const container = document.getElementById("setsList");
+  container.innerHTML = "";
+  sets.forEach((s, i) => {
+    container.innerHTML += `<div>${s.machine}: ${s.weight}kg × ${s.reps} reps</div>`;
+  });
+}
+
+function saveWorkout() {
+  const date = document.getElementById("calendar").value;
+  const splits = Array.from(document.getElementById("splitSelect").selectedOptions).map(opt => opt.value);
+  if (!date || sets.length === 0) {
+    alert("Please enter workout data");
+    return;
+  }
+  const allData = JSON.parse(localStorage.getItem("workouts") || "{}");
+  if (!allData[currentUser]) allData[currentUser] = {};
+  allData[currentUser][date] = { splits, sets };
+  localStorage.setItem("workouts", JSON.stringify(allData));
+  alert("Workout saved!");
+  sets = [];
+  updateSetsList();
+}
+
+function loadWorkout() {
+  const date = document.getElementById("calendar").value;
+  const allData = JSON.parse(localStorage.getItem("workouts") || "{}");
+  const entry = allData[currentUser]?.[date];
+  if (entry) {
+    document.getElementById("calendarView").innerHTML =
+      `<b>Split:</b> ${entry.splits.join(", ")}<br>` +
+      entry.sets.map(s => `${s.machine}: ${s.weight}kg × ${s.reps} reps`).join("<br>");
+  } else {
+    document.getElementById("calendarView").innerText = "No workout found.";
+  }
 }
