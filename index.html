@@ -1,79 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Workout Tracker</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.png" type="image/png" />
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
-    }
-  </script>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .hidden { display: none; }
+  </style>
 </head>
-<body class="bg-gray-900 text-white font-sans min-h-screen">
-  <div class="max-w-3xl mx-auto p-6">
-    <h1 class="text-4xl font-bold text-center mb-6">Workout Tracker</h1>
+<body class="bg-gray-900 text-white min-h-screen">
+  <div class="max-w-3xl mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-4 text-center">🏋️ Workout Tracker</h1>
 
-    <form id="workoutForm" class="bg-gray-800 p-4 rounded-lg shadow-lg">
-      <div class="mb-4">
-        <label class="block mb-2">Date</label>
-        <input type="date" id="date" class="w-full p-2 rounded bg-gray-700 text-white" required />
-      </div>
-      <div class="mb-4">
-        <label class="block mb-2">Workout Description</label>
-        <input type="text" id="description" placeholder="e.g., Chest + Triceps" class="w-full p-2 rounded bg-gray-700 text-white" required />
-      </div>
-      <div class="mb-4">
-        <label class="block mb-2">Duration (mins)</label>
-        <input type="number" id="duration" class="w-full p-2 rounded bg-gray-700 text-white" required />
-      </div>
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">Save Workout</button>
-    </form>
+    <!-- Login Section -->
+    <div id="loginSection" class="mb-6">
+      <input id="username" type="text" placeholder="Username" class="w-full mb-2 p-2 rounded bg-gray-800 text-white">
+      <input id="password" type="password" placeholder="Password" class="w-full mb-2 p-2 rounded bg-gray-800 text-white">
+      <button onclick="login()" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Login</button>
+    </div>
 
-    <div class="mt-8">
-      <h2 class="text-2xl font-semibold mb-4">Workout History</h2>
-      <ul id="historyList" class="space-y-2"></ul>
+    <!-- Main App -->
+    <div id="app" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Welcome, <span id="currentUser"></span></h2>
+        <button onclick="logout()" class="text-sm text-red-400 hover:text-red-600">Logout</button>
+      </div>
+
+      <!-- Split Selection -->
+      <label class="block mb-2">Select Muscle Groups:</label>
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <label><input type="checkbox" value="Shoulder" class="splitCheckbox mr-2">Shoulder</label>
+        <label><input type="checkbox" value="Tricep" class="splitCheckbox mr-2">Tricep</label>
+        <label><input type="checkbox" value="Back" class="splitCheckbox mr-2">Back</label>
+        <label><input type="checkbox" value="Bicep" class="splitCheckbox mr-2">Bicep</label>
+        <label><input type="checkbox" value="Legs" class="splitCheckbox mr-2">Legs</label>
+        <label><input type="checkbox" value="Chest" class="splitCheckbox mr-2">Chest</label>
+      </div>
+
+      <!-- Workout Entry -->
+      <input id="machine" type="text" placeholder="Machine/Exercise" class="w-full mb-2 p-2 rounded bg-gray-800 text-white">
+      <input id="weight" type="number" placeholder="Weight Used (kg)" class="w-full mb-2 p-2 rounded bg-gray-800 text-white">
+      <input id="reps" type="number" placeholder="Reps" class="w-full mb-2 p-2 rounded bg-gray-800 text-white">
+      <button onclick="addEntry()" class="bg-green-500 hover:bg-green-600 w-full p-2 rounded mb-4">Add Set</button>
+
+      <!-- History / Log -->
+      <h3 class="text-lg font-semibold mb-2">Today’s Log</h3>
+      <ul id="log" class="bg-gray-800 p-4 rounded space-y-2"></ul>
+
+      <h3 class="text-lg font-semibold mt-6 mb-2">Workout History</h3>
+      <input type="date" id="historyDate" class="mb-2 p-2 rounded bg-gray-800 text-white">
+      <button onclick="loadHistory()" class="bg-blue-500 hover:bg-blue-600 w-full p-2 rounded mb-4">View</button>
+      <ul id="historyLog" class="bg-gray-800 p-4 rounded space-y-2"></ul>
     </div>
   </div>
 
   <script>
-    const form = document.getElementById('workoutForm');
-    const historyList = document.getElementById('historyList');
+    const users = [
+      { username: 'user1', password: 'pass1' },
+      { username: 'user2', password: 'pass2' },
+      { username: 'user3', password: 'pass3' }
+    ];
 
-    const saveWorkout = (workout) => {
-      const data = JSON.parse(localStorage.getItem('workouts') || '[]');
-      data.push(workout);
-      localStorage.setItem('workouts', JSON.stringify(data));
-    };
+    let currentUser = null;
 
-    const loadHistory = () => {
-      const data = JSON.parse(localStorage.getItem('workouts') || '[]');
-      historyList.innerHTML = '';
-      data.reverse().forEach((entry) => {
-        const li = document.createElement('li');
-        li.className = 'bg-gray-800 p-3 rounded shadow';
-        li.textContent = `${entry.date}: ${entry.description} - ${entry.duration} mins`;
-        historyList.appendChild(li);
-      });
-    };
+    function login() {
+      const u = document.getElementById('username').value;
+      const p = document.getElementById('password').value;
+      const found = users.find(x => x.username === u && x.password === p);
+      if (found) {
+        currentUser = u;
+        document.getElementById('currentUser').innerText = u;
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        loadLog();
+      } else {
+        alert('Invalid login');
+      }
+    }
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const workout = {
-        date: document.getElementById('date').value,
-        description: document.getElementById('description').value,
-        duration: document.getElementById('duration').value,
-      };
-      saveWorkout(workout);
-      form.reset();
-      loadHistory();
-    });
+    function logout() {
+      currentUser = null;
+      document.getElementById('app').classList.add('hidden');
+      document.getElementById('loginSection').classList.remove('hidden');
+    }
 
-    window.addEventListener('load', loadHistory);
+    function addEntry() {
+      const machine = document.getElementById('machine').value;
+      const weight = document.getElementById('weight').value;
+      const reps = document.getElementById('reps').value;
+      const date = new Date().toISOString().split('T')[0];
+      const splits = [...document.querySelectorAll('.splitCheckbox:checked')].map(cb => cb.value);
+      if (!machine || !weight || !reps || splits.length === 0) return alert('Fill all fields and choose split');
+      const entry = { machine, weight, reps, splits };
+      const key = `${currentUser}_workouts_${date}`;
+      const data = JSON.parse(localStorage.getItem(key) || '[]');
+      data.push(entry);
+      localStorage.setItem(key, JSON.stringify(data));
+      loadLog();
+    }
+
+    function loadLog() {
+      const date = new Date().toISOString().split('T')[0];
+      const key = `${currentUser}_workouts_${date}`;
+      const data = JSON.parse(localStorage.getItem(key) || '[]');
+      const log = document.getElementById('log');
+      log.innerHTML = data.map(d =>
+        `<li>${d.machine} - ${d.weight}kg x ${d.reps} reps [${d.splits.join(', ')}]</li>`
+      ).join('');
+    }
+
+    function loadHistory() {
+      const date = document.getElementById('historyDate').value;
+      if (!date) return;
+      const key = `${currentUser}_workouts_${date}`;
+      const data = JSON.parse(localStorage.getItem(key) || '[]');
+      const log = document.getElementById('historyLog');
+      log.innerHTML = data.length ?
+        data.map(d => `<li>${d.machine} - ${d.weight}kg x ${d.reps} reps [${d.splits.join(', ')}]</li>`).join('') :
+        '<li class="text-gray-400">No data for this day.</li>';
+    }
   </script>
 </body>
 </html>
