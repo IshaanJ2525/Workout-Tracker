@@ -3,173 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Workout Tracker</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.png">
-  <style>
-    * {
-      font-family: 'Segoe UI', sans-serif;
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      background: #111;
-      color: #f5f5f5;
-      padding: 1rem;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    .split-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-    .split-buttons button {
-      background: #333;
-      border: 1px solid #777;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .split-buttons button.active {
-      background: #4CAF50;
-    }
-    form {
-      background: #222;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 0.5rem;
-      margin: 0.5rem 0;
-      border-radius: 5px;
-      border: none;
-    }
-    button[type="submit"] {
-      background: #4CAF50;
-      border: none;
-      color: white;
-      padding: 0.7rem;
-      width: 100%;
-      border-radius: 5px;
-      font-weight: bold;
-    }
-    .entries {
-      margin-top: 1rem;
-    }
-    .entry {
-      background: #1c1c1c;
-      border-left: 4px solid #4CAF50;
-      padding: 0.7rem;
-      margin-bottom: 0.5rem;
-      border-radius: 5px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+  <title>Gym Tracker</title>
 </head>
 <body>
-  <header>
-    <img src="icon.png" alt="App Icon" style="height: 50px;">
-    <h1>Workout Tracker</h1>
-  </header>
-
-  <div class="split-buttons">
-    <button onclick="toggleSplit('Back')">Back</button>
-    <button onclick="toggleSplit('Bicep')">Bicep</button>
-    <button onclick="toggleSplit('Chest')">Chest</button>
-    <button onclick="toggleSplit('Tricep')">Tricep</button>
-    <button onclick="toggleSplit('Shoulder')">Shoulder</button>
-    <button onclick="toggleSplit('Legs')">Legs</button>
+  <div id="login-screen">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
   </div>
 
-  <form onsubmit="saveEntry(event)">
-    <input type="text" id="machine" placeholder="Machine name (e.g., Lat Pulldown)" required />
-    <input type="text" id="sets" placeholder="Sets (e.g., 3)" required />
-    <input type="text" id="reps" placeholder="Reps per set (e.g., 12,10,8)" required />
-    <input type="text" id="weight" placeholder="Weight per set (e.g., 40,45,50)" required />
-    <textarea id="notes" placeholder="Optional notes"></textarea>
-    <button type="submit">Save Entry</button>
-  </form>
+  <div id="app" style="display:none;">
+    <h2 id="welcome-user"></h2>
+    <div class="split-buttons">
+      <button onclick="toggleSplit('Chest')">Chest</button>
+      <button onclick="toggleSplit('Back')">Back</button>
+      <button onclick="toggleSplit('Legs')">Legs</button>
+      <button onclick="toggleSplit('Shoulder')">Shoulder</button>
+      <button onclick="toggleSplit('Triceps')">Triceps</button>
+      <button onclick="toggleSplit('Biceps')">Biceps</button>
+    </div>
+    <input type="text" id="machine" placeholder="Enter machine name" />
+    <button onclick="saveWorkout()">Save</button>
+    <h3>Today's History</h3>
+    <div id="history-list"></div>
+  </div>
 
-  <div class="entries" id="entries"></div>
-
-  <script>
-    let selectedSplits = [];
-
-    function toggleSplit(split) {
-      const index = selectedSplits.indexOf(split);
-      if (index === -1) {
-        selectedSplits.push(split);
-      } else {
-        selectedSplits.splice(index, 1);
-      }
-      updateSplitUI();
-    }
-
-    function updateSplitUI() {
-      document.querySelectorAll(".split-buttons button").forEach(btn => {
-        if (selectedSplits.includes(btn.textContent)) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-      });
-    }
-
-    function saveEntry(e) {
-      e.preventDefault();
-      const dateKey = new Date().toLocaleDateString();
-      const machine = document.getElementById("machine").value;
-      const sets = document.getElementById("sets").value;
-      const reps = document.getElementById("reps").value;
-      const weight = document.getElementById("weight").value;
-      const notes = document.getElementById("notes").value;
-
-      const entry = {
-        date: dateKey,
-        splits: [...selectedSplits],
-        machine,
-        sets,
-        reps,
-        weight,
-        notes
-      };
-
-      const data = JSON.parse(localStorage.getItem("workoutData") || "[]");
-      data.push(entry);
-      localStorage.setItem("workoutData", JSON.stringify(data));
-
-      document.querySelector("form").reset();
-      renderEntries();
-    }
-
-    function renderEntries() {
-      const entries = JSON.parse(localStorage.getItem("workoutData") || "[]");
-      const today = new Date().toLocaleDateString();
-      const todayEntries = entries.filter(e => e.date === today);
-      const container = document.getElementById("entries");
-      container.innerHTML = "";
-
-      todayEntries.forEach(e => {
-        const div = document.createElement("div");
-        div.className = "entry";
-        div.innerHTML = `<strong>${e.machine}</strong><br>
-          Splits: ${e.splits.join(", ")}<br>
-          Sets: ${e.sets}<br>
-          Reps: ${e.reps}<br>
-          Weight: ${e.weight}<br>
-          ${e.notes ? `<em>Notes:</em> ${e.notes}` : ""}`;
-        container.appendChild(div);
-      });
-    }
-
-    renderEntries();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
