@@ -1,41 +1,41 @@
 body {
-  font-family: sans-serif;
+  font-family: Arial, sans-serif;
   background: #111;
-  color: #eee;
+  color: #fff;
   padding: 20px;
+  text-align: center;
 }
 
-input, select, button {
-  margin: 5px 0;
-  padding: 8px;
-  width: 100%;
-  max-width: 300px;
+input, button {
+  padding: 10px;
+  margin: 10px;
   border-radius: 6px;
   border: none;
+  font-size: 1em;
 }
 
 button {
-  background: #00b894;
-  color: white;
   cursor: pointer;
+  background: #333;
+  color: #fff;
 }
 
-button:hover {
-  background: #019875;
+button.active {
+  background-color: #00ff99;
+  color: #111;
 }
 
-.hidden {
-  display: none;
+.split-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
-.login-container, .main-app {
+#history-list {
+  margin-top: 20px;
+  text-align: left;
   max-width: 400px;
-  margin: auto;
-}
-
-#setsList div {
-  background: #222;
-  padding: 8px;
-  margin-top: 5px;
-  border-radius: 5px;
+  margin-left: auto;
+  margin-right: auto;
 }
